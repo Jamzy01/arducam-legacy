@@ -100,7 +100,7 @@ pub enum Error<SpiErr, I2cErr, PinErr> {
     OutOfBounds,
 }
 
-#[derive(Debug)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 // Image resolutions
 pub enum Resolution {
     Res160x120,
@@ -114,12 +114,12 @@ pub enum Resolution {
     Res1600x1200,
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 /// Image formats which Arducam can handle
 pub enum ImageFormat {
     // BMP,
     // RAW,
-    JPEG,
+    JPEG(Resolution),
 }
 
 /// Main struct responsible for communicating with Arducam
@@ -128,7 +128,6 @@ pub struct Arducam<SPI, I2C, CS> {
     spi_cs: CS,
     i2c: I2C,
     format: ImageFormat,
-    resolution: Resolution,
 }
 
 impl<SPI, I2C, CS, SpiErr, I2cErr, PinErr> Arducam<SPI, I2C, CS>
@@ -138,19 +137,12 @@ impl<SPI, I2C, CS, SpiErr, I2cErr, PinErr> Arducam<SPI, I2C, CS>
         CS: OutputPin<Error = PinErr>
 {
     /// Creates a new Arducam instance but doesn't initialize it
-    pub fn new(
-        spi: SPI,
-        i2c: I2C,
-        cs_pin: CS,
-        resolution: Resolution,
-        format: ImageFormat
-    ) -> Arducam<SPI, I2C, CS> {
+    pub fn new(spi: SPI, i2c: I2C, cs_pin: CS, format: ImageFormat) -> Arducam<SPI, I2C, CS> {
         Arducam {
             spi,
             spi_cs: cs_pin,
             i2c,
             format,
-            resolution,
         }
     }
 
@@ -166,27 +158,23 @@ impl<SPI, I2C, CS, SpiErr, I2cErr, PinErr> Arducam<SPI, I2C, CS>
         self.sensor_writereg8_8(0x12, 0x80)?;
         delay.delay_ms(100);
 
+        match self.format {
+            ImageFormat::JPEG(resolution) => {
+                self.sensor_writeregs8_8(&OV2640_JPEG_INIT)?;
+                self.sensor_writeregs8_8(&OV2640_YUV422)?;
+                self.sensor_writereg8_8(0xff, 0x01)?;
+                self.sensor_writereg8_8(0x15, 0x00)?;
+                self.send_resolution(resolution)?;
+            }
+        }
+
         // if self.format == ImageFormat::JPEG {
-        self.sensor_writeregs8_8(&OV2640_JPEG_INIT)?;
-        self.sensor_writeregs8_8(&OV2640_YUV422)?;
-        self.sensor_writereg8_8(0xff, 0x01)?;
-        self.sensor_writereg8_8(0x15, 0x00)?;
-        self.send_resolution()?;
+
         // }
         // else {
         //     unsafe { self.sensor_writeregs8_8(&OV2640_QVGA)?; }
         // }
 
-        Ok(())
-    }
-
-    /// Sets camera resolution
-    pub fn set_resolution(
-        &mut self,
-        resolution: Resolution
-    ) -> Result<(), Error<SpiErr, I2cErr, PinErr>> {
-        self.resolution = resolution;
-        self.send_resolution()?;
         Ok(())
     }
 
@@ -270,8 +258,11 @@ impl<SPI, I2C, CS, SpiErr, I2cErr, PinErr> Arducam<SPI, I2C, CS>
         Ok(chipid)
     }
 
-    fn send_resolution(&mut self) -> Result<(), Error<SpiErr, I2cErr, PinErr>> {
-        match self.resolution {
+    fn send_resolution(
+        &mut self,
+        resolution: Resolution
+    ) -> Result<(), Error<SpiErr, I2cErr, PinErr>> {
+        match resolution {
             Resolution::Res160x120 => {
                 self.sensor_writeregs8_8(&OV2640_160x120_JPEG)?;
             }
@@ -379,7 +370,6 @@ impl<SPI, I2C, CS> fmt::Debug
         f.debug_struct("Arducam")
             .field("Spi", &self.spi)
             .field("I2C", &self.i2c)
-            .field("Resolution", &self.resolution)
             .field("Image format", &self.format)
             .finish()
     }
