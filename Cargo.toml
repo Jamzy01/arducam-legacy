@@ -1,9 +1,15 @@
 [package]
 authors = ["Radosław Wolański <radekw8733@gmail.com"]
 license = "Apache-2.0"
-name = "arducam-legacy"
-description = "Driver for Arducam legacy cameras based on embedded-hal"
-categories = ["hardware-support", "embedded", "computer-vision", "no-std::no-alloc", "multimedia::images"]
+name = "arducam-legacy-bmp"
+description = "Driver for Arducam legacy cameras based on embedded-hal. Forked to add BMP support"
+categories = [
+    "hardware-support",
+    "embedded",
+    "computer-vision",
+    "no-std::no-alloc",
+    "multimedia::images",
+]
 keywords = ["embedded", "embedded-hal", "arducam", "ov2640"]
 version = "0.1.2"
 edition = "2021"
@@ -12,6 +18,3 @@ readme = "README.md"
 
 [dependencies]
 embedded-hal = "0.2.7"
-
-[build-dependencies]
-cc = "1.0.79"

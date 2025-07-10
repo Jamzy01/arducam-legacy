@@ -1,12 +1,13 @@
 [arducam]: https://docs.arducam.com/Arduino-SPI-camera/Legacy-SPI-camera/Introduction/
 [embedded-hal]: https://github.com/rust-embedded/embedded-hal
 
-# `arducam-legacy`
-This Rust library provides [embedded-hal][embedded-hal] support for [legacy Arducam SPI-based cameras][arducam] like e.g. ArduCAM MINI 2MP Plus. It has been rewritten from original Arducam library written in C.
+# `arducam-legacy-bmp`
+This Rust library provides [embedded-hal][embedded-hal] support for [legacy Arducam SPI-based cameras][arducam] like e.g. ArduCAM MINI 2MP Plus. It has been rewritten from original Arducam library written in C. Forked to add BMP support
 
 ## Milestones
 - [x] OV2640 support
 - [x] JPEG image support
+- [x] BMP image support
 - [x] Different resolutions
 - [ ] More sensor models support
 - [ ] DMA API
