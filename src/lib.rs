@@ -73,6 +73,7 @@ use crate::ov2640_registers::{
     OV2640_640x480_JPEG,
     OV2640_800x600_JPEG,
     OV2640_JPEG_INIT,
+    OV2640_QVGA,
     OV2640_YUV422,
 };
 mod ov2640_registers;
@@ -117,7 +118,7 @@ pub enum Resolution {
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 /// Image formats which Arducam can handle
 pub enum ImageFormat {
-    // BMP,
+    BMP,
     // RAW,
     JPEG(Resolution),
 }
@@ -150,9 +151,9 @@ impl<SPI, I2C, CS, SpiErr, I2cErr, PinErr> Arducam<SPI, I2C, CS>
     pub fn init<D>(&mut self, delay: &mut D) -> Result<(), Error<SpiErr, I2cErr, PinErr>>
         where D: DelayMs<u32>
     {
-        self.arduchip_write_reg(0x07, 0x80)?;
+        //self.arduchip_write_reg(0x07, 0x80)?;
         delay.delay_ms(100);
-        self.arduchip_write_reg(0x07, 0x00)?;
+        //self.arduchip_write_reg(0x07, 0x00)?;
         delay.delay_ms(100);
         self.sensor_writereg8_8(0xff, 0x01)?;
         self.sensor_writereg8_8(0x12, 0x80)?;
@@ -166,13 +167,16 @@ impl<SPI, I2C, CS, SpiErr, I2cErr, PinErr> Arducam<SPI, I2C, CS>
                 self.sensor_writereg8_8(0x15, 0x00)?;
                 self.send_resolution(resolution)?;
             }
+            ImageFormat::BMP => {
+                self.sensor_writeregs8_8(&OV2640_QVGA)?;
+            }
         }
 
         // if self.format == ImageFormat::JPEG {
 
         // }
         // else {
-        //     unsafe { self.sensor_writeregs8_8(&OV2640_QVGA)?; }
+        //     unsafe {  }
         // }
 
         Ok(())
